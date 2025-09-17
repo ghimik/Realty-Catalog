@@ -1,0 +1,11 @@
+.client-select-page {
+  padding: 40px;
+  text-align: center;
+}
+
+.client-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}

@@ -1,0 +1,13 @@
+.client-info {
+  background: #f4f4f4;
+  padding: 15px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+.client-info h2 {
+  margin: 0 0 10px 0;
+}
+.client-info p {
+  margin: 4px 0;
+}
