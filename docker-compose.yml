@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: realty
+      POSTGRES_PASSWORD: realtypass
+      POSTGRES_DB: realtydb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  nginx:
+    image: nginx:latest
+    container_name: gateway
+    ports:
+      - "8080:80"
+    volumes:
+      - ./ngnix/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - registry-service
+      - matching-service
+
+
+  registry-service:
+    build: ./registyservice
+    container_name: registry-service
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/realtydb
+      SPRING_DATASOURCE_USERNAME: realty
+      SPRING_DATASOURCE_PASSWORD: realtypass
+    ports:
+      - "8081:8081"
+
+  matching-service:
+    build: ./matchingservice
+    container_name: matching-service
+    depends_on:
+      - postgres
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/realtydb
+      SPRING_DATASOURCE_USERNAME: realty
+      SPRING_DATASOURCE_PASSWORD: realtypass
+    ports:
+      - "8082:8082"
+
+volumes:
+  postgres_data:
