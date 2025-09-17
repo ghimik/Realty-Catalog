@@ -107,6 +107,12 @@ export async function rejectTrade(tradeId) {
 
 // UTILS 
 
+
+export async function deleteOrderById(id) {
+  const res = await fetch(`${MATCHING_URL}/api/orders/${id}`, {method: "DELETE"});
+  return;
+}
+
 export async function fetchOrderById(id) {
   const res = await fetch(`${MATCHING_URL}/api/orders/${id}`);
   return res.json();

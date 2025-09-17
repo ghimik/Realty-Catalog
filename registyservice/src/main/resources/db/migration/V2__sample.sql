@@ -29,7 +29,6 @@ INSERT INTO orders (client_id, apartment_id, type, status, price_min, price_max)
                                                                                      (4, 4, 'SELL', 'OPEN', 12000000, 12000000),
                                                                                      (5, NULL, 'BUY', 'OPEN', 6000000, 8000000),
                                                                                      (6, 6, 'SELL', 'OPEN', 7500000, 7500000),
-                                                                                     (7, NULL, 'EXCHANGE', 'OPEN', NULL, NULL),
                                                                                      (8, 8, 'SELL', 'OPEN', 6500000, 6500000),
                                                                                      (9, NULL, 'BUY', 'OPEN', 7500000, 8500000),
                                                                                      (10, 10, 'SELL', 'OPEN', 5800000, 5800000);

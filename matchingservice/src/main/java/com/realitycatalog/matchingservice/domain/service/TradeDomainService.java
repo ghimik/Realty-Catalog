@@ -36,17 +36,32 @@ public class TradeDomainService {
                                 counterOrder.setStatus(OrderStatus.CLOSED);
 
                                 Order sellingOrder, buyingOrder;
-                                if (order.getType().equals(OrderType.BUY)) {
+                                if (order.getType().equals(OrderType.BUY) && counterOrder.getType().equals(OrderType.SELL)) {
                                     buyingOrder = order;
                                     sellingOrder = counterOrder;
-                                } else {
+                                } else if (order.getType().equals(OrderType.SELL) && counterOrder.getType().equals(OrderType.BUY)) {
                                     sellingOrder = order;
                                     buyingOrder = counterOrder;
+                                } else if (order.getType().equals(OrderType.EXCHANGE) && counterOrder.getType().equals(OrderType.EXCHANGE)) {
+                                    return apartmentRepository.findById(order.getApartmentId())
+                                            .zipWith(apartmentRepository.findById(counterOrder.getApartmentId()))
+                                            .flatMap(tAp -> {
+                                                tAp.getT1().setOwnerId(counterOrder.getApartmentId());
+                                                tAp.getT2().setOwnerId(order.getApartmentId());
+                                                return apartmentRepository.update(tAp.getT1())
+                                                        .then(apartmentRepository.update(tAp.getT2()));
+                                            })
+                                            .then(orderRepository.save(order))
+                                            .then(orderRepository.save(counterOrder))
+                                            .then(tradeRepository.save(trade));
+                                } else {
+                                    return Mono.error(new RuntimeException("Unsupported order type"));
                                 }
 
 
                                 return apartmentRepository.findById(sellingOrder.getApartmentId())
                                         .flatMap(apartment -> {
+
                                             apartment.setOwnerId(buyingOrder.getClientId());
                                             return apartmentRepository.update(apartment);
                                         })

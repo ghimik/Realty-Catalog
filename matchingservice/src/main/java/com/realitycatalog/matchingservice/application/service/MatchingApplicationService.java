@@ -48,6 +48,11 @@ public class MatchingApplicationService {
                 ));
     }
 
+    public Mono<Void> deleteOrder(Long id) {
+        return orderRepository.deleteById(id);
+
+    }
+
     public Flux<OrderDto> matchOrder(Long orderId) {
         return orderDomainService.matchOrder(orderId)
                 .map(o -> new OrderDto(

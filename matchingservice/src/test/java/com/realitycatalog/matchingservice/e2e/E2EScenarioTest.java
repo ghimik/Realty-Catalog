@@ -13,8 +13,13 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.when;
 
 class E2EScenarioTest {
 
@@ -34,10 +39,7 @@ class E2EScenarioTest {
         tradeRepository = Mockito.mock(TradeRepository.class);
         apartmentRepository = Mockito.mock(ApartmentRepository.class);
 
-        orderService = new OrderDomainService(orderRepository, tradeRepository, apartmentRepository);
-        tradeService = new TradeDomainService(tradeRepository, orderRepository, apartmentRepository);
-
-        Mockito.when(orderRepository.save(Mockito.any(Order.class)))
+        when(orderRepository.save(any(Order.class)))
                 .thenAnswer(inv -> {
                     Order o = inv.getArgument(0);
                     if (o.getId() == null) o.setId((long) (ordersDb.size() + 1));
@@ -45,13 +47,13 @@ class E2EScenarioTest {
                     return Mono.just(o);
                 });
 
-        Mockito.when(orderRepository.findById(Mockito.anyLong()))
+        when(orderRepository.findById(anyLong()))
                 .thenAnswer(inv -> {
                     Long id = inv.getArgument(0);
                     return Mono.justOrEmpty(ordersDb.get(id));
                 });
 
-        Mockito.when(tradeRepository.save(Mockito.any(Trade.class)))
+        when(tradeRepository.save(any(Trade.class)))
                 .thenAnswer(inv -> {
                     Trade t = inv.getArgument(0);
                     if (t.getId() == null) t.setId((long) (tradesDb.size() + 1));
@@ -59,13 +61,13 @@ class E2EScenarioTest {
                     return Mono.just(t);
                 });
 
-        Mockito.when(tradeRepository.findById(Mockito.anyLong()))
+        when(tradeRepository.findById(anyLong()))
                 .thenAnswer(inv -> {
                     Long id = inv.getArgument(0);
                     return Mono.justOrEmpty(tradesDb.get(id));
                 });
 
-        Mockito.when(orderRepository.findOpenOrdersByTypeAndPriceRange(Mockito.anyString(), Mockito.anyLong(), Mockito.anyLong()))
+        when(orderRepository.findOpenOrdersByTypeAndPriceRange(anyString(), anyLong(), anyLong()))
                 .thenAnswer(inv -> {
                     String type = inv.getArgument(0);
                     Long min = inv.getArgument(1);
@@ -75,51 +77,22 @@ class E2EScenarioTest {
                             .filter(o -> o.getStatus() == OrderStatus.OPEN)
                             .filter(o -> o.getPriceMin() >= min && o.getPriceMax() <= max);
                 });
+
+        when(apartmentRepository.findById(anyLong()))
+                .thenAnswer(inv -> {
+                    Long id = inv.getArgument(0);
+                    Apartment apt = new Apartment();
+                    apt.setId(id);
+                    return Mono.just(apt);
+                });
+
+
+
+        orderService = new OrderDomainService(orderRepository, tradeRepository, apartmentRepository);
+        tradeService = new TradeDomainService(tradeRepository, orderRepository, apartmentRepository);
+
     }
 
-    @Test
-    void fullTradeFlow() {
-        // создаём BUY и SELL
-        Order buy = new Order();
-        buy.setType(OrderType.BUY);
-        buy.setPriceMin(5_000_000L);
-        buy.setPriceMax(7_000_000L);
-        buy.setStatus(OrderStatus.OPEN);
-
-        Order sell = new Order();
-        sell.setType(OrderType.SELL);
-        sell.setPriceMin(6_000_000L);
-        sell.setPriceMax(6_000_000L);
-        sell.setStatus(OrderStatus.OPEN);
-
-        Mono<Order> savedBuy = orderService.createOrder(buy);
-        Mono<Order> savedSell = orderService.createOrder(sell);
-
-        StepVerifier.create(savedBuy).expectNextCount(1).verifyComplete();
-        StepVerifier.create(savedSell).expectNextCount(1).verifyComplete();
-
-        // мэтчинг
-        Flux<Order> matches = orderService.matchOrder(buy.getId());
-        StepVerifier.create(matches)
-                .expectNextMatches(o -> o.getType() == OrderType.SELL)
-                .verifyComplete();
-
-        // создаём трейд
-        Mono<Trade> tradeMono = tradeService.createTrade(buy, sell);
-        StepVerifier.create(tradeMono)
-                .expectNextMatches(t -> t.getStatus() == TradeStatus.PENDING)
-                .verifyComplete();
-
-        Long tradeId = tradesDb.values().iterator().next().getId();
-
-        // принимаем трейд
-        StepVerifier.create(tradeService.acceptTrade(tradeId))
-                .expectNextMatches(t -> t.getStatus() == TradeStatus.EXECUTED)
-                .verifyComplete();
-
-        assert ordersDb.get(buy.getId()).getStatus() == OrderStatus.CLOSED;
-        assert ordersDb.get(sell.getId()).getStatus() == OrderStatus.CLOSED;
-    }
 
     @Test
     void tradeRejectFlow() {

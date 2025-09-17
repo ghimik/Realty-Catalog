@@ -50,6 +50,11 @@ public class MatchingController {
         return service.getOrderById(id);
     }
 
+    @DeleteMapping("/orders/{id}")
+    public Mono<Void> deleteOrderById(@PathVariable Long id) {
+        return service.deleteOrder(id);
+    }
+
     @GetMapping("/trades")
     public Flux<TradeDto> getAllTrades() {
         return service.getAllTrades();

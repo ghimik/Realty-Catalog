@@ -56,6 +56,9 @@ public class OrderDomainService {
     }
 
     Mono<Boolean> apartmentsMatchReactive(Long apartmentId1, Long apartmentId2) {
+        if (apartmentId1 == null || apartmentId2 == null || apartmentId1.equals(apartmentId2)) {
+            return Mono.just(false);
+        }
         Mono<Apartment> a1 = apartmentRepository.findById(apartmentId1);
         Mono<Apartment> a2 = apartmentRepository.findById(apartmentId2);
 
@@ -63,9 +66,7 @@ public class OrderDomainService {
                 .map(tuple -> {
                     Apartment apt1 = tuple.getT1();
                     Apartment apt2 = tuple.getT2();
-                    return apt1.getRooms().equals(apt2.getRooms()) &&
-                            apt1.getArea().equals(apt2.getArea()) &&
-                            apt1.getFloor().equals(apt2.getFloor());
+                    return apt1.getRooms().equals(apt2.getRooms());
                 });
     }
 

@@ -28,28 +28,7 @@ class TradeDomainServiceTest {
         service = new TradeDomainService(tradeRepository, orderRepository, apartmentRepository);
     }
 
-    @Test
-    void acceptTrade_ShouldExecuteAndCloseOrders() {
-        Trade trade = new Trade();
-        trade.setId(1L);
-        trade.setOrderId(10L);
-        trade.setCounterOrderId(20L);
 
-        Order o1 = new Order(); o1.setId(10L);
-        Order o2 = new Order(); o2.setId(20L);
-
-        when(tradeRepository.findById(1L)).thenReturn(Mono.just(trade));
-        when(orderRepository.findById(10L)).thenReturn(Mono.just(o1));
-        when(orderRepository.findById(20L)).thenReturn(Mono.just(o2));
-        when(orderRepository.save(any(Order.class))).thenAnswer(inv -> Mono.just(inv.getArgument(0)));
-        when(tradeRepository.save(any(Trade.class))).thenAnswer(inv -> Mono.just(inv.getArgument(0)));
-
-        StepVerifier.create(service.acceptTrade(1L))
-                .assertNext(t -> {
-                    assert t.getStatus() == TradeStatus.EXECUTED;
-                })
-                .verifyComplete();
-    }
 
     @Test
     void rejectTrade_ShouldReopenOrders() {

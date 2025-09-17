@@ -35,11 +35,11 @@ export default function OrderForm({ apartments, order, onSubmit, onClose }) {
           <select name="type" value={form.type} onChange={handleChange}>
             <option value="BUY">Покупка</option>
             <option value="SELL">Продажа</option>
-            <option value="TRADE">Обмен</option>
+            <option value="EXCHANGE">Обмен</option>
           </select>
         </label>
 
-        {(form.type === 'SELL' || form.type === 'TRADE') && (
+        {(form.type === 'SELL' || form.type === 'EXCHANGE') && (
           <label>Квартира
             <select name="apartmentId" value={form.apartmentId} onChange={handleChange}>
               {apartments.map(a => (
@@ -49,7 +49,7 @@ export default function OrderForm({ apartments, order, onSubmit, onClose }) {
           </label>
         )}
 
-        {(form.type !== 'TRADE') && (<>
+        {(form.type !== 'EXCHANGE') && (<>
             <label>Цена мин
                 <input type="number" name="priceMin" value={form.priceMin} onChange={handleChange} />
             </label>

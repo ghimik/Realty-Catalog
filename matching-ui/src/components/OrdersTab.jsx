@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { fetchClientOrders, createOrder, fetchClientApartments } from '../api';
+import { fetchClientOrders, createOrder, fetchClientApartments, createTrade, deleteOrderById } from '../api';
 import OrderForm from './OrderForm';
 import MatchingOrders from './MatchingOrders';
 import OrderDetailsModal from './OrderDetailsModal';
@@ -48,6 +48,14 @@ export default function OrdersTab({ client }) {
   const handleEdit = (order) => { setEditingOrder(order); setShowForm(true); };
   const handleFormSubmit = async (dto) => { await createOrder({ ...dto, clientId: client.id }); setShowForm(false); loadOrders(); };
   const handleMatch = (orderId) => { setMatchingOrderId(orderId); };
+  const handleDelete = (orderId) => { deleteOrderById(orderId); };
+
+
+  const handleCreateTrade = async (counterOrderId) => {
+    await createTrade(matchingOrderId, counterOrderId);
+    setMatchingOrderId(null);
+    loadOrders();
+  };
 
   if (loading) return <p>Загрузка ордеров...</p>;
   if (!orders.length) return <p>Ордеров пока нет. <button onClick={handleCreate}>Создать</button></p>;
@@ -64,14 +72,16 @@ export default function OrdersTab({ client }) {
             <div className="actions">
               <button onClick={() => handleEdit(o)}>Редактировать</button>
               <button onClick={() => handleMatch(o.id)}>Мэтчинг</button>
+              <button onClick={() => handleDelete(o.id)}>Отозвать</button>
+
             </div>
           </li>
         ))}
       </ul>
 
       {showForm && <OrderForm apartments={apartments} order={editingOrder} onSubmit={handleFormSubmit} onClose={() => setShowForm(false)} />}
-      {matchingOrderId && <MatchingOrders orderId={matchingOrderId} onClose={() => setMatchingOrderId(null)} />}
-      {selectedOrderId && <OrderDetailsModal orderId={selectedOrderId} showClient={false} onClose={() => setSelectedOrderId(null)} />}
+      {matchingOrderId && <MatchingOrders orderId={matchingOrderId} onCreateTrade={handleCreateTrade} onClose={() => setMatchingOrderId(null)} />}
+      {selectedOrderId && <OrderDetailsModal orderId={selectedOrderId}  showClient={false} onClose={() => setSelectedOrderId(null)} />}
     </div>
   );
 }
